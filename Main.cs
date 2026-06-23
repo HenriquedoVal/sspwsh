@@ -308,8 +308,8 @@ public class InvokePrompt : PSCmdlet
         var res = InvokeCommand.InvokeScript("Get-History -Count 1");
         if (res.Count > 0) {
             var hi = res[0].ImmediateBaseObject as HistoryInfo;
-            last_cmd_duration_ms = (nuint)
-                (hi!.EndExecutionTime - hi.StartExecutionTime).Milliseconds;
+            var span = (hi.EndExecutionTime - hi.StartExecutionTime);
+            last_cmd_duration_ms = (nuint)span.TotalMilliseconds;
         }
 
         string ret = SS.get_prompt(path, width, lec, last_cmd_duration_ms);

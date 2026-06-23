@@ -1,7 +1,7 @@
 param([switch]$pack, [switch]$install)
 
 $project_name = "NewShellServer"
-$project_version = "0.0.1"
+$project_version = "0.0.2"
 $csproj_platform = "net8.0-windows"
 $script_to_process = "SetPromptText.ps1"
 
@@ -24,7 +24,7 @@ if (-not (Test-Path $manifest)) {
 if (-not ($pack -or $install)) { exit 0 }
 
 
-$pack_dirs = "$project_name\$project_version"  
+$pack_dirs = "$project_name\$project_version"
 
 mkdir $pack_dirs -ErrorAction Ignore > $null
 copy $manifest $pack_dirs
