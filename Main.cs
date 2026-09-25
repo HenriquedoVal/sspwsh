@@ -33,6 +33,16 @@ static partial class SS
 {
     const string dll_name = "nss_client.dll";
 
+    public enum ConfigSelector : int
+    {
+        GIT_INFO,
+        EXTENSION_ICONS,
+        CMD_DURATION,
+        BATTERY,
+        CLOCK
+    }
+    const uint static_assert = sizeof(int) == 4 ? 0 : -1;
+
     // bool ss_add_refpath(const char *path, /*nullable*/ const char *as);
     [LibraryImport(dll_name,
             StringMarshalling = StringMarshalling.Utf8,
@@ -60,6 +70,17 @@ static partial class SS
             EntryPoint = "ss_move_refpath_down")]
     [return: MarshalAs(UnmanagedType.I1)]
     public static partial bool move_refpath_down(string path);
+
+    // bool ss_update_config(SSConfigSelector which, bool enable);
+    [LibraryImport(dll_name, EntryPoint = "ss_update_config")]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static partial bool update_config(
+            ConfigSelector which, [MarshalAs(UnmanagedType.I1)]bool enable);
+
+    // bool ss_commit_config(void);
+    [LibraryImport(dll_name, EntryPoint = "ss_commit_config")]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static partial bool commit_config();
 
     // bool ss_kill_server(void);
     [LibraryImport(dll_name, EntryPoint = "ss_kill_server")]
@@ -287,6 +308,54 @@ public class SaveCache : PSCmdlet
 }
 
 
+[Cmdlet(VerbsData.Update, "ShellServerConfig")]
+[OutputType(typeof(string))]
+public class UpdateConfig : PSCmdlet
+{
+    [Parameter()]
+    public bool? GitInfo;
+
+    [Parameter()]
+    public bool? ExtensionIcons;
+
+    [Parameter()]
+    public bool? CmdDuration;
+
+    [Parameter()]
+    public bool? Battery;
+
+    [Parameter()]
+    public bool? Clock;
+
+    protected override void BeginProcessing()
+    {
+        if (GitInfo        is null &&
+            ExtensionIcons is null &&
+            CmdDuration    is null &&
+            Battery        is null &&
+            Clock          is null)
+                throw new ArgumentException("No argument is provided");
+
+        if (GitInfo is not null)
+            SS.update_config(SS.ConfigSelector.GIT_INFO, (bool)GitInfo);
+
+        if (ExtensionIcons is not null)
+            SS.update_config(SS.ConfigSelector.EXTENSION_ICONS, (bool)ExtensionIcons);
+
+        if (CmdDuration is not null)
+            SS.update_config(SS.ConfigSelector.CMD_DURATION, (bool)CmdDuration);
+
+        if (Battery is not null)
+            SS.update_config(SS.ConfigSelector.BATTERY, (bool)Battery);
+
+        if (Clock is not null)
+            SS.update_config(SS.ConfigSelector.CLOCK, (bool)Clock);
+
+        SS.commit_config();
+    }
+}
+
+
 [Cmdlet(VerbsLifecycle.Invoke, "ShellServerPrompt")]
 [OutputType(typeof(string))]
 [Alias("prompt")]
@@ -411,7 +480,7 @@ class DirsCompleter: IArgumentCompleter
             // ToolTip is the abs path.
             var attr = File.GetAttributes(res.ToolTip);
             bool isDir = (attr & FileAttributes.Directory) > 0;
-            
+
             if (isDir) yield return res;
         }
     }

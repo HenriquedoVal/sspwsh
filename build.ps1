@@ -1,7 +1,7 @@
 param([switch]$pack, [switch]$install)
 
 $project_name = "NewShellServer"
-$project_version = "0.0.2"
+$project_version = "0.0.3"
 $csproj_platform = "net8.0-windows"
 $script_to_process = "SetPromptText.ps1"
 
